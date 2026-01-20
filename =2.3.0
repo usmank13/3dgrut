@@ -1,0 +1,8 @@
+Looking in indexes: https://pypi.org/simple, https://pypi.ngc.nvidia.com
+Collecting polyscope
+  Downloading polyscope-2.5.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+Requirement already satisfied: numpy in /home/usman/miniconda3/envs/3dgrut/lib/python3.11/site-packages (from polyscope) (1.26.4)
+Downloading polyscope-2.5.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (7.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.8/7.8 MB 7.7 MB/s  0:00:01
+Installing collected packages: polyscope
+Successfully installed polyscope-2.5.0

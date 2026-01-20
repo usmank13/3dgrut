@@ -15,6 +15,7 @@
 
 from .dataset_colmap import ColmapDataset
 from .dataset_nerf import NeRFDataset
+from .dataset_nerfstudio import NerfstudioDataset
 from .dataset_scannetpp import ScannetppDataset
 
 
@@ -60,9 +61,21 @@ def make(name: str, config, ray_jitter):
                 downsample_factor=config.dataset.downsample_factor,
                 test_split_interval=config.dataset.test_split_interval,
             )
+        case "nerfstudio":
+            train_dataset = NerfstudioDataset(
+                config.path,
+                split="train",
+                bg_color=config.model.background.color,
+                ray_jitter=ray_jitter,
+            )
+            val_dataset = NerfstudioDataset(
+                config.path,
+                split="val",
+                bg_color=config.model.background.color,
+            )
         case _:
             raise ValueError(
-                f'Unsupported dataset type: {config.dataset.type}. Choose between: ["colmap", "nerf", "scannetpp"].'
+                f'Unsupported dataset type: {config.dataset.type}. Choose between: ["colmap", "nerf", "nerfstudio", "scannetpp"].'
             )
 
     return train_dataset, val_dataset
@@ -90,8 +103,14 @@ def make_test(name: str, config):
                 downsample_factor=config.dataset.downsample_factor,
                 test_split_interval=config.dataset.test_split_interval,
             )
+        case "nerfstudio":
+            dataset = NerfstudioDataset(
+                config.path,
+                split="test",
+                bg_color=config.model.background.color,
+            )
         case _:
             raise ValueError(
-                f'Unsupported dataset type: {config.dataset.type}. Choose between: ["colmap", "nerf", "scannetpp"].'
+                f'Unsupported dataset type: {config.dataset.type}. Choose between: ["colmap", "nerf", "nerfstudio", "scannetpp"].'
             )
     return dataset
