@@ -182,7 +182,9 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
         camera_model = intr["camera_model"]
 
         # Check if we have any distortion
-        has_distortion = any(abs(x) > 1e-10 for x in [k1, k2, k3, k4, k5, k6, p1, p2, s1, s2, s3, s4])
+        # TODO: Distortion handling may need debugging - temporarily disabled
+        # has_distortion = any(abs(x) > 1e-10 for x in [k1, k2, k3, k4, k5, k6, p1, p2, s1, s2, s3, s4])
+        has_distortion = False  # Temporarily disable to test if distortion is causing issues
 
         out_shape = (1, h, w, 3)
 
