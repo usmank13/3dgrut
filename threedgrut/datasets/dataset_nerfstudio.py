@@ -389,8 +389,19 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
         image_data = np.asarray(Image.open(self.image_paths[idx]))
         actual_h, actual_w = image_data.shape[:2]
 
+        # Verify dimensions match the pre-computed rays
+        intr_id = self.get_intrinsics_idx(idx)
+        _, rays_o, _, _ = self.intrinsics[intr_id]
+        expected_h, expected_w = rays_o.shape[1], rays_o.shape[2]
+        if actual_h != expected_h or actual_w != expected_w:
+            raise ValueError(
+                f"Image {self.image_paths[idx]} has dimensions {actual_w}x{actual_h} "
+                f"but intrinsics specify {expected_w}x{expected_h}. "
+                f"Image dimensions must match intrinsics."
+            )
+
         # Handle RGBA images
-        if image_data.shape[2] == 4:
+        if len(image_data.shape) == 3 and image_data.shape[2] == 4:
             # Blend alpha channel
             if self.bg_color is None:
                 image_data = image_data[..., :3]
@@ -404,6 +415,18 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
                 ).astype(np.uint8)
 
         assert image_data.dtype == np.uint8, "Image data must be of type uint8"
+
+        # Ensure image has 3 channels
+        if len(image_data.shape) == 2:
+            # Grayscale - convert to RGB
+            image_data = np.stack([image_data] * 3, axis=-1)
+        elif len(image_data.shape) == 3 and image_data.shape[2] != 3:
+            raise ValueError(f"Expected 3-channel image, got shape {image_data.shape}")
+
+        # Debug: print shapes on first call
+        if idx == 0:
+            print(f"DEBUG: image shape={image_data.shape}, pose shape={self.poses[idx].shape}")
+            print(f"DEBUG: rays shape={rays_o.shape}")
 
         output_dict = {
             "data": torch.tensor(image_data).unsqueeze(0),
@@ -434,12 +457,18 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
 
         camera_params_dict, rays_ori, rays_dir, camera_name = worker_intrinsics[intr]
 
+        # Extract simple intrinsics list [fx, fy, cx, cy] like NeRF dataset
+        fx = camera_params_dict["focal_length"][0]
+        fy = camera_params_dict["focal_length"][1]
+        cx = camera_params_dict["principal_point"][0]
+        cy = camera_params_dict["principal_point"][1]
+
         sample = {
             "rgb_gt": data,
             "rays_ori": rays_ori,
             "rays_dir": rays_dir,
             "T_to_world": pose,
-            f"intrinsics_{camera_name}": camera_params_dict,
+            "intrinsics": [fx, fy, cx, cy],  # Simple list format like NeRF
         }
 
         if "mask" in batch:
