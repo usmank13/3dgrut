@@ -182,9 +182,7 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
         camera_model = intr["camera_model"]
 
         # Check if we have any distortion
-        # TODO: Distortion handling may need debugging - temporarily disabled
-        # has_distortion = any(abs(x) > 1e-10 for x in [k1, k2, k3, k4, k5, k6, p1, p2, s1, s2, s3, s4])
-        has_distortion = False  # Temporarily disable to test if distortion is causing issues
+        has_distortion = any(abs(x) > 1e-10 for x in [k1, k2, k3, k4, k5, k6, p1, p2, s1, s2, s3, s4])
 
         out_shape = (1, h, w, 3)
 
@@ -457,18 +455,12 @@ class NerfstudioDataset(Dataset, BoundedMultiViewDataset, DatasetVisualization):
 
         camera_params_dict, rays_ori, rays_dir, camera_name = worker_intrinsics[intr]
 
-        # Extract simple intrinsics list [fx, fy, cx, cy] like NeRF dataset
-        fx = camera_params_dict["focal_length"][0]
-        fy = camera_params_dict["focal_length"][1]
-        cx = camera_params_dict["principal_point"][0]
-        cy = camera_params_dict["principal_point"][1]
-
         sample = {
             "rgb_gt": data,
             "rays_ori": rays_ori,
             "rays_dir": rays_dir,
             "T_to_world": pose,
-            "intrinsics": [fx, fy, cx, cy],  # Simple list format like NeRF
+            f"intrinsics_{camera_name}": camera_params_dict,
         }
 
         if "mask" in batch:
